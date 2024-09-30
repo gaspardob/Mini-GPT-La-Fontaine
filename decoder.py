@@ -78,17 +78,19 @@ class LanguageModel(nn.Module):
 
     def forward(self, idx, targets=None):
         B, T = idx.shape
-        tok_emb = self.token_embedding(idx)
-        pos_emb = self.position_embedding(torch.arange(T, device=idx.device))
-        x = tok_emb + pos_emb
-        x = self.blocks(x)
-        x = self.ln_f(x)
-        logits = self.head(x)
+        tok_emb = self.token_embedding(idx) #(B,T,C)
+        pos_emb = self.position_embedding(torch.arange(T, device=idx.device)) #(T,C)
+        x = tok_emb + pos_emb #(B,T,C)
+        x = self.blocks(x) #(B,T,C)
+        x = self.ln_f(x) #(B,T,C)
+        logits = self.head(x) #(B,T,vocab_size)
 
         if targets is None:
             loss = None
         else:
-            loss = F.cross_entropy(logits.view(B * T, -1), targets.view(B * T))
+            logits = logits.view(-1, vocab_size)  # (B*T, vocab_size)
+            targets = targets.view(-1)            # (B*T)
+            loss = F.cross_entropy(logits, targets)
         return logits, loss
 
     def generate(self, idx, max_new_tokens, temperature=1.0):
