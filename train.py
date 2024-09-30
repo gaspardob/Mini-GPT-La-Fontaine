@@ -1,6 +1,6 @@
 import torch
 import torch.optim as optim
-from transfomer-decoder import LanguageModel
+from decoder import LanguageModel
 from utils import get_batch, estimate_loss
 import torch
 import torch.optim as optim
